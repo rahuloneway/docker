@@ -1,20 +1,24 @@
-FROM ubuntu:latest
-
-
-RUN apt-get update
-RUN apt-get check
-
-
-RUN apt-get install -y apache2
-
-# See http://www.kstaken.com/blog/2013/07/06/how-to-run-apache-under-docker/
-ENV APACHE_RUN_USER www-data
-ENV APACHE_RUN_GROUP www-data
-ENV APACHE_LOG_DIR /var/log/apache2
-
-ADD apache2.conf /etc/apache2/apache2.conf
-
-EXPOSE 80
-
-ENTRYPOINT ["/usr/sbin/apache2"]
-CMD ["-D", "FOREGROUND"]
+    FROM ubuntu:16.04
+     
+    # Apache ENVs
+    ENV APACHE_RUN_USER www-data
+    ENV APACHE_RUN_GROUP www-data
+    ENV APACHE_LOCK_DIR /var/lock/apache2
+    ENV APACHE_LOG_DIR /var/log/apache2
+    ENV APACHE_PID_FILE /var/run/apache2/apache2.pid
+    ENV APACHE_SERVER_NAME localhost
+     
+    # Install services, packages and do cleanup
+    RUN apt-get update \
+     && apt-get install -y \
+        apache2 \
+     && rm -rf /var/lib/apt/lists/*
+     
+    # Copy files
+    COPY apache-conf /etc/apache2/apache2.conf
+     
+    # Expose Apache
+    EXPOSE 80
+     
+    # Launch Apache
+    CMD ["/usr/sbin/apache2ctl", "-DFOREGROUND"]
